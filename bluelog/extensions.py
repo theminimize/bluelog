@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    :author: Grey Li (李辉)
-    :url: http://greyli.com
-    :copyright: © 2018 Grey Li <withlihui@gmail.com>
-    :license: MIT, see LICENSE for more details.
+extensions.py文件用于拓展类的实例化
+将全局拓展对象db,bootstrap等放置到工厂函数之外如：extensions.py，这样工厂函数才有全局拓展对象使用
 """
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
@@ -15,6 +13,7 @@ from flask_wtf import CSRFProtect
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_migrate import Migrate
 
+# 拓展类实例化
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -27,10 +26,10 @@ migrate = Migrate()
 
 
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_id):     # 用户加载函数，接收用户ID为参数，返回对应的用户对象
     from bluelog.models import Admin
-    user = Admin.query.get(int(user_id))
-    return user
+    user = Admin.query.get(int(user_id))    # 如果用户已登录则返回Admin类实例
+    return user  # 返回对应用户对象
 
 
 login_manager.login_view = 'auth.login'

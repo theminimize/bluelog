@@ -13,5 +13,6 @@
 {% block scripts %}
     {{ super() }}
     <script type="text/javascript" src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
+    <!-- 在模板中需要加载CKEditor资源，使用ckeditor.config()方法加载配置 -->
     {{ ckeditor.config(name='body') }}
 {% endblock %}

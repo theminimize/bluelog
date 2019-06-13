@@ -1,8 +1,11 @@
 {% if links %}
+    <!-- card:卡片,mb-3=margin-bottom:1 rem -->
     <div class="card mb-3">
         <div class="card-header">Links</div>
+        <!-- list-group-flush:用于列表组去除部分边框 -->
         <ul class="list-group list-group-flush">
             {% for link in links %}
+                <!-- list-group-item-action表示链接列表项,target="_blank"新窗口打开该链接 -->
                 <li class="list-group-item  list-group-item-action d-flex justify-content-between align-items-center">
                     <a href="{{ link.url }}" target="_blank">{{ link.name }}</a>
                 </li>
@@ -20,6 +23,7 @@
                     <a href="{{ url_for('blog.show_category', category_id=category.id) }}">
                         {{ category.name }}
                     </a>
+                    <!-- 添加徽章,length过滤器计算category下post个数 -->
                     <span class="badge badge-primary badge-pill"> {{ category.posts|length }}</span>
                 </li>
             {% endfor %}
@@ -27,6 +31,7 @@
     </div>
 {% endif %}
 
+<!-- dropdown:下拉菜单,更换主题下拉菜单 -->
 <div class="dropdown">
     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenuButton"
             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

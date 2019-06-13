@@ -1,20 +1,32 @@
+<!-- 继承基模板 -->
 {% extends 'base.html' %}
+<!-- 从Bootstrap-Flask导入render_pager()宏用于渲染分页导航部件 -->
 {% from 'bootstrap/pagination.html' import render_pager %}
 
+<!-- 覆盖父模板block title内容 -->
 {% block title %}Home{% endblock %}
 
+<!-- 覆盖父模板网页主体块 -->
 {% block content %}
+    <!-- page-header:页面标题 -->
     <div class="page-header">
+        <!-- display:加粗显示标题,主标题 -->
         <h1 class="display-3">{{ admin.blog_title|default('Blog Title') }}</h1>
+        <!-- text-muted:柔和的文本,副标题 -->
         <h4 class="text-muted">&nbsp;{{ admin.blog_sub_title|default('Blog Subtitle') }}</h4>
     </div>
+    <!-- bootstrap网格系统 -->
     <div class="row">
+        <!-- 文章列表占比8个网格列 -->
         <div class="col-sm-8">
+            <!-- 导入局部模板 -->
             {% include 'blog/_posts.html' %}
+            <!-- 有文章则,引入分页导航部件 -->
             {% if posts %}
                 <div class="page-footer">{{ render_pager(pagination) }}</div>
             {% endif %}
         </div>
+        <!-- 边栏占比4个网列格 -->
         <div class="col-sm-4 sidebar">
             {% include 'blog/_sidebar.html' %}
         </div>

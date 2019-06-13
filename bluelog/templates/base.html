@@ -1,12 +1,17 @@
+<!--Bootstrap-Flask提供,用作导航栏-->
 {% from 'bootstrap/nav.html' import render_nav_item %}
 <!DOCTYPE html>
+<!--  -->
 <html lang="en">
 <head>
+    <!--块的开始和结束用block和endblock标签表明-->
     {% block head %}
         <meta charset="utf-8">
+    <!--meta表示元数据,属性name表示网页简要信息，content属性是对name的具体描述;这里的viewport关键字主要用于移动端网页-->
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <title>{% block title %}{% endblock title %} - {{ admin.blog_title|default('Blog Title') }}</title>
         <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+        <!--网站主题切换,request.cookies.get()获取'theme'字段信息,默认值为perfect_blue-->
         <link rel="stylesheet"
               href="{{ url_for('static', filename='css/%s.min.css' % request.cookies.get('theme', 'perfect_blue')) }}"
               type="text/css">
@@ -15,21 +20,30 @@
 </head>
 <body>
 {% block nav %}
+    <!--navbar-expend-lg: 创建响应式的导航栏 (大屏幕水平铺开，小屏幕垂直堆叠);navbar-dark:浅色字体(light:深色); bg-primary:背景颜色-->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
+            <!--navbar-brand用于高亮显示以及自适应图片,此处为高亮显示博客标题-->
             <a class="navbar-brand" href="{{ url_for('blog.index') }}">{{ admin.blog_title }}</a>
+            <!--navbar-toggler用于设置折叠导航栏；aria-*主要与js一起使用实现动态效果-->
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01"
                     aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <!--collapse, navbar-collapse与上面的navbar-toggler结合，包裹导航内容(链接)-->
             <div class="collapse navbar-collapse" id="navbarColor01">
+                <!-- mr-auto:margin-right:auto-->
                 <ul class="navbar-nav mr-auto">
+                    <!--render_nav_item接收完整端点值和按钮文本，返回完整导航链接-->
                     {{ render_nav_item('blog.index', 'Home') }}
                     {{ render_nav_item('blog.about', 'About') }}
                 </ul>
 
+                <!--这段ul用于登录之后的导航栏右上角显示管理员可见内容-->
                 <ul class="nav navbar-nav navbar-right">
+                    <!--Flask-LOGIN判断登录状态-->
                     {% if current_user.is_authenticated %}
+                        <!--dropdown:下拉菜单控件,从bootstrap.min.js引入-->
                         <li class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
                                aria-haspopup="true"
@@ -48,6 +62,7 @@
                                aria-expanded="false">
                                 Manage <span class="caret"></span>
                                 {% if unread_comments %}
+                                    <!--badge徽章，用于突出显示未读内容,badge-success:表示颜色-->
                                     <span class="badge badge-success">new</span>
                                 {% endif %}
                             </a>
@@ -56,6 +71,7 @@
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_category') }}">Category</a>
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_comment') }}">
                                     Comment
+                                    <!--显示未读评论数量-->
                                     {% if unread_comments %}
                                         <span class="badge badge-success">{{ unread_comments }}</span>
                                     {% endif %}
@@ -63,7 +79,8 @@
                                 <a class="dropdown-item" href="{{ url_for('admin.manage_link') }}">Link</a>
                             </div>
                         </li>
-                        {{ render_nav_item('admin.settings', 'Settings') }}
+                        <!--显示settings页面的导航栏-->
+                        {{ render_nav_item('admin.settings','Settings') }}
                     {% endif %}
                 </ul>
             </div>
@@ -71,9 +88,13 @@
     </nav>
 {% endblock nav %}
 
+<!--main标签对于网页内容来说是唯一的，不应包含文档中重复出现的内容-->
 <main class="container">
+    <!--获取“闪现”信息-->
     {% for message in get_flashed_messages(with_categories=True) %}
+        <!--alert:信息提示框-->
         <div class="alert alert-{{ message[0] }}" role="alert">
+            <!--设置消息提示框关闭按钮-->
             <button type="button" class="close" data-dismiss="alert">&times;</button>
             {{ message[1] }}
         </div>
@@ -82,6 +103,7 @@
     {% block footer %}
         <footer>
             <p class="float-left">
+                <!--small用于创建字号更小，颜色更浅的文本-->
                 <small> &copy; 2018 <a href="http://greyli.com" title="Written by Grey Li">Grey Li</a> -
                     <a href="https://github.com/greyli/bluelog" title="Fork me on GitHub">GitHub</a> -
                     <a href="http://helloflask.com" title="A HelloFlask project">HelloFlask</a>
@@ -90,6 +112,7 @@
             <p class="float-right">
                 <small>
                     {% if current_user.is_authenticated %}
+                        <!-- 如果用户已经登录，显示出下面的登出链接,next存储当前页面的路径，用于用户重定向回上一页面-->
                         <a href="{{ url_for('auth.logout', next=request.full_path) }}">Logout</a>
                     {% else %}
                         <a href="{{ url_for('auth.login', next=request.full_path) }}">Login</a>
@@ -105,6 +128,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- 引入Moment.js库,用于渲染时间 -->
     {{ moment.include_moment(local_js=url_for('static', filename='js/moment-with-locales.min.js')) }}
 {% endblock %}
 </body>

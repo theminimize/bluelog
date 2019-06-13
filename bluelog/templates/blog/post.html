@@ -1,36 +1,52 @@
 {% extends 'base.html' %}
+<!-- 引入Bootstrap-Flask的render_form()快速渲染表单宏 -->
 {% from 'bootstrap/form.html' import render_form %}
+<!-- 分页导航栏宏 -->
 {% from 'bootstrap/pagination.html' import render_pagination %}
 
+<!-- 覆盖title block -->
 {% block title %}{{ post.title }}{% endblock %}
 
 {% block content %}
     <div class="page-header">
         <h1>{{ post.title }}
             <span class="float-right">
-        {% if current_user.is_authenticated %}
-            <a class="btn btn-info btn-sm" href="{{ url_for('admin.edit_post', post_id=post.id) }}">Edit</a>
-            <form class="inline" method="post"
-                  action="{{ url_for('admin.delete_post', post_id=post.id, next=url_for('blog.index')) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete
-                </button>
-            </form>
-        {% endif %}
-      </span>
+                <!-- 如果已登录，则展示Edit编辑按钮和Delete按钮 -->
+                {% if current_user.is_authenticated %}
+                <!-- 点击编辑按钮链接到edit_post页面 -->
+                <a class="btn btn-info btn-sm" href="{{ url_for('admin.edit_post', post_id=post.id) }}">Edit</a>
+                <!-- 由于删除delete操作会修改数据库，为防止CSRF攻击，此处使用form提交POST请求 -->
+                <!-- action 属性规定当提交表单时，向何处发送表单数据，链接到admin.delete_post路由函数 -->
+                <form class="inline" method="post"
+                      action="{{ url_for('admin.delete_post', post_id=post.id, next=url_for('blog.index')) }}">
+                    <!-- 表单中必须使用CSRFProtect提供的csrf_token()函数渲染包含CSRF的隐藏字段,name值需要设为csrf_token -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <!-- 设置提交按钮,点击delete按钮触发onclick事件-return confirm，弹出对话框 -->
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?');">Delete
+                    </button>
+                </form>
+                {% endif %}
+            </span>
         </h1>
         <small>
+            <!-- url_for()调用视图函数名show_category做参数 -->
             Category: <a
                 href="{{ url_for('.show_category', category_id=post.category.id) }}">{{ post.category.name }}</a><br>
+            <!-- 渲染时间和日期 -->
             Date: {{ moment(post.timestamp).format('LL') }}
         </small>
     </div>
     <div class="row">
         <div class="col-sm-8">
+            <!-- 由于Bluelog采用了富文本编辑器撰写文章，文章内容通过HTML代码实现。
+            为了让Jinja2把这些文本当做HTML代码渲染，需要使用safe过滤器 -->
             {{ post.body|safe }}
+            <!-- hr标签表示水平线 -->
             <hr>
+            <!-- 分享链接按钮。data-target所指的元素以data-toggle指定的形式(modal模态框)显示 -->
             <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target=".postLinkModal">Share
             </button>
+            <!-- 定义一个包含固态链接的模态框 -->
             <div class="modal fade postLinkModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
                  aria-hidden="true">
                 <div class="modal-dialog">
@@ -42,6 +58,7 @@
                             </button>
                         </div>
                         <div class="modal-body">
+                            <!-- 表单组，input标签用于搜集用户信息，在url_for()中的_external用来生成绝对URL,readonly:只读属性 -->
                             <div class="form-group">
                                 <input type="text" class="form-control"
                                        value="{{ url_for('.show_post', post_id=post.id, _external=True) }}" readonly>
@@ -50,38 +67,50 @@
                     </div>
                 </div>
             </div>
+            <!-- 评论 -->
             <div class="comments" id="comments">
                 <h3>{{ pagination.total }} Comments
                     <small>
+                        <!-- 指定page为总页数，跳转到最新评论，如果页数为0则使用默认值1，结尾URL片段实现跳到页面上的评论区 -->
                         <a href="{{ url_for('.show_post', post_id=post.id, page=pagination.pages or 1) }}#comments">
                             latest</a>
                     </small>
+                    <!-- 如果管理员已登录，显示以下按钮(表单包裹按钮旨在防范CSRF攻击) -->
                     {% if current_user.is_authenticated %}
                         <form class="float-right" method="post"
                               action="{{ url_for('admin.set_comment', post_id=post.id, next=request.full_path) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <!-- 判断按钮文本 -->
                             <button type="submit" class="btn btn-warning btn-sm">
                                 {% if post.can_comment %}Disable{% else %}Enable{% endif %} Comment
                             </button>
                         </form>
                     {% endif %}
                 </h3>
+                <!-- 评论列表组 -->
                 {% if comments %}
                     <ul class="list-group">
                         {% for comment in comments %}
+                        <!-- flex弹性盒子,flex-column子元素垂直方向显示 -->
                             <li class="list-group-item list-group-item-action flex-column">
+                                <!-- w-100:width:100%,justify-content-between：内容排列方式 -->
                                 <div class="d-flex w-100 justify-content-between">
+                                    <!-- mb-1:margin-button -->
                                     <h5 class="mb-1">
+                                        <!-- 如果评论填写了站点信息，则把站点渲染为姓名指向的链接 -->
                                         <a href="{% if comment.site %}{{ comment.site }}{% else %}#{% endif %}"
                                            target="_blank">
+                                            <!-- 这里用于判定，如果评论为管理员则admin.name作为评论者名字，否则用comment.author -->
                                             {% if comment.from_admin %}
                                                 {{ admin.name }}
                                             {% else %}
                                                 {{ comment.author }}
                                             {% endif %}
                                         </a>
+                                        <!-- 管理员评论添加Author徽章 -->
                                         {% if comment.from_admin %}
                                             <span class="badge badge-primary">Author</span>{% endif %}
+                                        <!-- 当评论是一个回复时,则显示一个Reply提示标签 -->
                                         {% if comment.replied %}<span class="badge badge-light">Reply</span>{% endif %}
                                     </h5>
                                     <small data-toggle="tooltip" data-placement="top" data-delay="500"
@@ -89,17 +118,22 @@
                                         {{ moment(comment.timestamp).fromNow() }}
                                     </small>
                                 </div>
+                                <!-- 判断是否回复；comment.replied.id表示被回复评论的作者,br表示换行 -->
                                 {% if comment.replied %}
                                     <p class="alert alert-dark reply-body">{{ comment.replied.author }}:
                                         <br>{{ comment.replied.body }}
                                     </p>
                                 {%- endif -%}
+                                <!-- 评论主体 -->
                                 <p class="mb-1">{{ comment.body }}</p>
+                                <!-- float-right:靠右悬浮 -->
                                 <div class="float-right">
                                     <a class="btn btn-light btn-sm"
                                        href="{{ url_for('.reply_comment', comment_id=comment.id) }}">Reply</a>
                                     {% if current_user.is_authenticated %}
+                                        <!-- 发送邮件提醒 -->
                                         <a class="btn btn-light btn-sm" href="mailto:{{ comment.email }}">Email</a>
+                                        <!-- 删除评论 -->
                                         <form class="inline" method="post"
                                               action="{{ url_for('admin.delete_comment', comment_id=comment.id, next=request.full_path) }}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -116,23 +150,29 @@
                     <div class="tip"><h5>No comments.</h5></div>
                 {% endif %}
             </div>
+            <!-- 分页导航栏 -->
             {% if comments %}
                 {{ render_pagination(pagination, fragment='#comments') }}
             {% endif %}
+            <!-- 如果请求参数为reply,显示被回复的用户名名称 -->
             {% if request.args.get('reply') %}
                 <div class="alert alert-dark">
                     Reply to <strong>{{ request.args.get('author') }}</strong>:
+                    <!-- 右侧回复取消按钮 -->
                     <a class="float-right" href="{{ url_for('.show_post', post_id=post.id) }}">Cancel</a>
                 </div>
             {% endif %}
+            <!-- 如果管理员关闭了当前评论，相应的提示会取代评论表单 -->
             {% if post.can_comment %}
                 <div id="comment-form">
+                    <!-- 快速表单渲染, action参数表示表单提交到的目标URL -->
                     {{ render_form(form, action=request.full_path) }}
                 </div>
             {% else %}
                 <div class="tip"><h5>Comment disabled.</h5></div>
             {% endif %}
         </div>
+        <!-- 局部模板渲染边栏 -->
         <div class="col-sm-4 sidebar">
             {% include "blog/_sidebar.html" %}
         </div>

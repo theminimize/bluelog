@@ -6,11 +6,13 @@
 {% block content %}
     <div class="page-header">
         <h1>Settings</h1>
+        <!-- render_form()只需传入对应表单实例即可生成对应表单 -->
+        {{ render_form(form) }}
     </div>
-    {{ render_form(form) }}
 {% endblock %}
 
 {% block scripts %}
+    <!-- super()用于向基模板块追加内容 -->
     {{ super() }}
     <script type="text/javascript" src="{{ url_for('static', filename='ckeditor/ckeditor.js') }}"></script>
 {% endblock %}

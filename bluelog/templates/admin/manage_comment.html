@@ -9,18 +9,21 @@
             <small class="text-muted">{{ pagination.total }}</small>
         </h1>
 
+        <!-- 设置评论筛选过滤导航栏 -->
         <ul class="nav nav-pills">
             <li class="nav-item">
                 <a class="nav-link disabled" href="#">Filter </a>
             </li>
             <li class="nav-item">
+                <!-- request.args.get('filter', 'all')获取查询参数filter -->
                 <a class="nav-link {% if request.args.get('filter', 'all') == 'all' %}active{% endif %}"
                    href="{{ url_for('admin.manage_comment', filter='all') }}">All</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
-                   href="{{ url_for('admin.manage_comment', filter='unread') }}">Unread {% if unread_comments %}<span
-                        class="badge badge-success">{{ unread_comments }}</span>{% endif %}</a>
+                   href="{{ url_for('admin.manage_comment', filter='unread') }}">Unread {% if unread_comments %}
+                    <!-- 设置未审核评论徽章 -->
+                    <span class="badge badge-success">{{ unread_comments }}</span>{% endif %}</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.args.get('filter') == 'admin' %}active{% endif %}"
@@ -41,17 +44,21 @@
             </tr>
             </thead>
             {% for comment in comments %}
+                <!-- 如果comment未审核,则table表格颜色为warning黄色 -->
                 <tr {% if not comment.reviewed %}class="table-warning" {% endif %}>
                     <td>{{ loop.index + ((pagination.page - 1) * config['BLUELOG_COMMENT_PER_PAGE']) }}</td>
                     <td>
+                        <!-- 显示评论作者名及来源url -->
                         {% if comment.from_admin %}{{ admin.name }}{% else %}{{ comment.author }}{% endif %}<br>
                         {% if comment.site %}
                             <a href="{{ comment.site }}" target="_blank">
                                 {{ comment.site }}
                             </a><br>
                         {% endif %}
+                        <!-- 点击发送邮件 -->
                         <a href="mailto:{{ comment.email }}">{{ comment.email }}</a>
 
+                        <!-- 管理员评论徽章 -->
                         {% if comment.from_admin %}
                             <span class="badge badge-primary">Author</span>
                         {% endif %}
@@ -59,6 +66,7 @@
                     <td>{{ comment.body }}</td>
                     <td>{{ moment(comment.timestamp).format('LL') }}</td>
                     <td>
+                         <!-- 未审核添加approve审核标签 -->
                         {% if not comment.reviewed %}
                             <form class="inline" method="post"
                                   action="{{ url_for('.approve_comment', comment_id=comment.id, next=request.full_path) }}">
